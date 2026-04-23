@@ -1,4 +1,4 @@
-const STEPS = ['Tickets', 'Details', 'Payment', 'Confirmation']
+const STEPS = ['Tickets', 'Payment', 'Confirmation']
 
 export default function ProgressBar({ currentStep }) {
   return (

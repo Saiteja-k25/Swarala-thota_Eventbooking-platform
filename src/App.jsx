@@ -6,6 +6,11 @@ import Lenis from '@studio-freight/lenis'
 import CustomCursor from './components/CustomCursor'
 import Home from './pages/Home'
 import Booking from './pages/Booking'
+import EventsPage from './pages/EventsPage'
+import ProfilePage from './pages/ProfilePage'
+import PrivacyPolicy from './pages/PrivacyPolicy'
+import TermsOfUse from './pages/TermsOfUse'
+import EventDetail from './pages/EventDetail'
 import './App.css'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -25,6 +30,11 @@ function AppContent() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/booking" element={<Booking />} />
+        <Route path="/events" element={<EventsPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfUse />} />
+        <Route path="/event/:id" element={<EventDetail />} />
       </Routes>
     </>
   )

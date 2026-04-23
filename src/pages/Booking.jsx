@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import BookingHeader from '../components/booking/BookingHeader'
 import ProgressBar from '../components/booking/ProgressBar'
 import TicketSelection from '../components/booking/TicketSelection'
-import AttendeeDetails from '../components/booking/AttendeeDetails'
 import Payment from '../components/booking/Payment'
 import Confirmation from '../components/booking/Confirmation'
 
@@ -63,12 +62,12 @@ export default function Booking() {
   const [orderId, setOrderId] = useState('')
 
   const goNext = useCallback(() => {
-    if (step === 2) {
+    if (step === 1) {
       // Generate order ID when entering confirmation
       setOrderId(generateOrderId())
     }
     setDirection(1)
-    setStep((s) => Math.min(s + 1, 3))
+    setStep((s) => Math.min(s + 1, 2))
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [step])
 
@@ -90,22 +89,13 @@ export default function Booking() {
         )
       case 1:
         return (
-          <AttendeeDetails
-            attendee={attendee}
-            setAttendee={setAttendee}
-            onNext={goNext}
-            onBack={goBack}
-          />
-        )
-      case 2:
-        return (
           <Payment
             tickets={tickets}
             onNext={goNext}
             onBack={goBack}
           />
         )
-      case 3:
+      case 2:
         return (
           <Confirmation
             tickets={tickets}

@@ -10,19 +10,19 @@ const TICKET_DATA = [
     name: 'Regular',
     price: 299,
     badge: 'Popular',
-    features: ['General entry', 'Welcome drink', 'Live music access'],
+    features: ['General entry', 'Live music access'],
   },
   {
     id: 'couple',
     name: 'Couple',
     price: 499,
-    features: ['Entry for 2', 'Reserved seating', '2 Welcome drinks'],
+    features: ['Entry for 2', 'Reserved seating'],
   },
   {
     id: 'group',
     name: 'Group of 5',
-    price: 899,
-    features: ['Entry for 5', 'Group seating', '5 Welcome drinks'],
+    price: 1245,
+    features: ['Entry for 5', 'Group seating'],
   },
 ]
 

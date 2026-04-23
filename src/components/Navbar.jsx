@@ -24,7 +24,7 @@ export default function Navbar() {
   return (
     <nav className={`navbar ${scrolled ? 'scrolled' : ''}`} id="navbar">
       <Link to="/" className="nav-brand">
-        <img src={logoEn} alt="Swarala Thota" className="nav-logo" />
+        <img src={logoEn} alt="Swarala Thota" className="nav-logo" style={{ borderRadius: '50%' }} />
       </Link>
 
       <button
@@ -39,12 +39,15 @@ export default function Navbar() {
 
       <ul className={`nav-links ${menuOpen ? 'open' : ''}`}>
         <li><a href="#about" onClick={() => scrollTo('about')}>About</a></li>
-        <li><a href="#passes" onClick={() => scrollTo('passes')}>Passes</a></li>
-        <li><a href="#vibe" onClick={() => scrollTo('vibe')}>Vibe</a></li>
-        <li><a href="#venue" onClick={() => scrollTo('venue')}>Venue</a></li>
+        <li><Link to="/events" onClick={() => setMenuOpen(false)}>Events</Link></li>
       </ul>
 
-      <Link to="/booking" className="nav-cta"><span>Book Now</span></Link>
+      <button className="nav-login-icon" aria-label="Login">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+      </button>
     </nav>
   )
 }

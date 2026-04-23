@@ -134,9 +134,8 @@ export default function Confirmation({ tickets, attendee, orderId }) {
         color: '#9aab8a',
         lineHeight: 1.8,
       }}>
-        <div><strong style={{ color: '#c4d0b8' }}>Name:</strong> {attendee.name}</div>
-        <div><strong style={{ color: '#c4d0b8' }}>Email:</strong> {attendee.email}</div>
-        <div><strong style={{ color: '#c4d0b8' }}>Phone:</strong> +91 {attendee.phone}</div>
+        <div><strong style={{ color: '#c4d0b8' }}>Name:</strong> Guest User</div>
+        <div><strong style={{ color: '#c4d0b8' }}>Email:</strong> Linked via Google</div>
       </div>
 
       {/* QR Code */}

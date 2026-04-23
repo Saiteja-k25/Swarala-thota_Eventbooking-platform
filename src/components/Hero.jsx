@@ -123,27 +123,11 @@ export default function Hero() {
           స్వరాల తోట
         </motion.p>
 
-        {/* Event meta */}
-        <motion.div variants={itemVariants} className="hero-meta">
-          <div className="hero-meta-item">
-            <span className="hero-meta-icon">📅</span>
-            <span>07 March 2026</span>
-          </div>
-          <div className="hero-meta-divider" />
-          <div className="hero-meta-item">
-            <span className="hero-meta-icon">🕟</span>
-            <span>4:30 PM</span>
-          </div>
-          <div className="hero-meta-divider" />
-          <div className="hero-meta-item">
-            <span className="hero-meta-icon">📍</span>
-            <span>Happy Woods, Gachibowli</span>
-          </div>
-        </motion.div>
+
 
         {/* CTAs */}
         <motion.div variants={itemVariants} className="hero-ctas">
-          <Link to="/booking" className="cta-primary">
+          <Link to="/events" className="cta-primary">
             <span>Grab Your Pass</span>
           </Link>
         </motion.div>
