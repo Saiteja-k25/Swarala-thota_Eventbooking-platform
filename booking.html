@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="assets/logo_en.png">
+  <link rel="apple-touch-icon" href="assets/logo_en.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Booking — Swarala Thota</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/style.css">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+  
+  <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  
+  <style>
+    .hidden-step { display: none !important; }
+  </style>
+</head>
+<body>
+  
+  
+
+  <div class="booking-page standalone">
+    <!-- Simple back button -->
+    <div style="position: sticky; top: 0; z-index: 100; padding: 1rem 1.25rem; background: rgba(6, 15, 8, 0.92); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(200,168,75,0.1);">
+      <button onclick="history.back()" id="booking-back-btn" style="background: none; border: none; color: #8FA89B; font-family: var(--font-body); font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 0.4rem; padding: 0; transition: color 0.2s;" onmouseover="this.style.color='var(--color-gold)'" onmouseout="this.style.color='#8FA89B'">
+        <span style="font-size: 1.2rem;">←</span> Back
+      </button>
+    </div>
+
+    <div class="booking-container">
+
+
+      <div class="step-content">
+        <!-- STEP 1: Ticket Selection -->
+        <div id="step-1" style="width: 100%;">
+          <div class="ticket-select-grid" id="ticket-list">
+            <!-- Populated by JS -->
+          </div>
+
+          <div class="order-summary">
+            <div class="order-summary-title">Order Summary</div>
+            <div id="order-empty" class="order-empty">Select tickets above to see your order summary</div>
+            <div id="order-details" style="display: none;">
+              <div id="order-items"></div>
+              <div class="order-divider"></div>
+              <div class="order-line fee"><span>Platform Fee</span><span id="platform-fee">₹0</span></div>
+              <div class="order-line fee"><span>Convenience Fee (2.5%)</span><span id="conv-fee">₹0.00</span></div>
+              <div class="order-divider"></div>
+              <div class="order-total"><span>Total</span><span id="order-total">₹0.00</span></div>
+            </div>
+          </div>
+
+          <div class="step-nav" style="justify-content: flex-end;">
+            <button class="step-btn step-btn-next" id="btn-next-1" disabled onclick="initiatePayment()">Pay & Book →</button>
+          </div>
+        </div>
+
+        <!-- STEP 2: Processing (Replacing mock payment) -->
+        <div id="step-2" class="hidden-step" style="width: 100%; text-align: center; padding: 4rem 0;">
+          <div class="st-loader-wrap" style="padding: 0 0 1.5rem;"><div class="st-loader"></div></div>
+          <h3 style="font-family: var(--font-display); font-size: 1.8rem; font-weight: bold; color: #D4AF37; margin-bottom: 1rem;" id="processing-title">Verifying Payment...</h3>
+          <p style="color: #8FA89B;" id="processing-desc">Please wait while we confirm your booking.</p>
+        </div>
+
+        <!-- STEP 3: Confirmation -->
+        <div id="step-3" class="hidden-step" style="width: 100%;">
+          <div class="confirm-card">
+            <div class="confirm-icon">✓</div>
+            <h2 class="confirm-title">Booking Confirmed!</h2>
+            <p class="confirm-subtitle">Your passes for Swarala Thota — The Musical Garden are secured.</p>
+            <div class="confirm-order-id" id="confirm-order-id">Order ID: ST-2026-XXXXX</div>
+
+            <table class="invoice-table">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th style="text-align: center;">Qty</th>
+                  <th style="text-align: center;">Price</th>
+                  <th style="text-align: right;">Amount</th>
+                </tr>
+              </thead>
+              <tbody id="invoice-tbody">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+
+            <div style="text-align: left; padding: 1rem 1.25rem; background: rgba(10, 26, 15, 0.4); border-radius: 8px; margin-bottom: 2rem; font-size: 0.85rem; color: #9aab8a; line-height: 1.8;">
+              <div><strong style="color: #c4d0b8;">Name:</strong> Guest User</div>
+              <div><strong style="color: #c4d0b8;">Email:</strong> Linked via Google</div>
+            </div>
+
+            <div class="qr-wrapper">
+              <div class="qr-box" id="qr-container">
+                <!-- SVG injected via JS -->
+              </div>
+              <span class="qr-label">Show this QR at the venue entrance</span>
+            </div>
+
+            <a href="index.html" class="confirm-home-btn">Back to Home</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const TICKET_DATA = [
+      { id: 'earlyBird', name: 'Early Bird', price: 250, badge: null, features: ['Limited seats', 'General entry', 'Live music access'] },
+      { id: 'regular', name: 'Regular', price: 299, badge: 'Popular', features: ['General entry', 'Live music access'] },
+      { id: 'couple', name: 'Couple', price: 499, badge: null, features: ['Entry for 2', 'Reserved seating'] },
+      { id: 'group', name: 'Group of 5', price: 1245, badge: null, features: ['Entry for 5', 'Group seating'] }
+    ];
+
+    let state = {
+      tickets: { earlyBird: 0, regular: 0, couple: 0, group: 0 },
+      summary: { items: [], subtotal: 0, platformFee: 0, convenienceFee: 0, total: 0 }
+    };
+    window.API_BASE = "https://swaralathota-backend.ourancientheroes.workers.dev";
+
+    function updateQty(id, delta) {
+      const current = state.tickets[id] || 0;
+      const newQty = Math.max(0, current + delta);
+      state.tickets[id] = newQty;
+      renderTickets();
+    }
+
+    function renderTickets() {
+      const list = document.getElementById('ticket-list');
+      list.innerHTML = TICKET_DATA.map(t => {
+        const qty = state.tickets[t.id];
+        return `
+          <div class="ts-card ${qty > 0 ? 'has-qty' : ''}">
+            <div class="ts-card-header">
+              <div class="ts-card-name">${t.name}</div>
+              ${t.badge ? `<span class="ts-card-badge">${t.badge}</span>` : ''}
+            </div>
+            <div class="ts-card-price">₹${t.price} <span>/ person</span></div>
+            <ul class="ts-card-features">
+              ${t.features.map(f => `<li>${f}</li>`).join('')}
+            </ul>
+            <div class="qty-controls">
+              <button class="qty-btn" onclick="updateQty('${t.id}', -1)" ${qty === 0 ? 'disabled' : ''}>−</button>
+              <span class="qty-value">${qty}</span>
+              <button class="qty-btn" onclick="updateQty('${t.id}', 1)">+</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      updateSummary();
+    }
+
+    function updateSummary() {
+      let subtotal = 0;
+      const items = [];
+
+      TICKET_DATA.forEach(t => {
+        const qty = state.tickets[t.id] || 0;
+        if (qty > 0) {
+          const lineTotal = qty * t.price;
+          subtotal += lineTotal;
+          items.push({ name: t.name, qty, price: t.price, lineTotal });
+        }
+      });
+
+      const platformFee = subtotal > 0 ? 10 : 0;
+      const convenienceFee = Math.round(subtotal * 0.025 * 100) / 100;
+      const total = subtotal + platformFee + convenienceFee;
+
+      state.summary = { items, subtotal, platformFee, convenienceFee, total };
+
+      const hasTickets = items.length > 0;
+      document.getElementById('order-empty').style.display = hasTickets ? 'none' : 'block';
+      document.getElementById('order-details').style.display = hasTickets ? 'block' : 'none';
+      document.getElementById('btn-next-1').disabled = !hasTickets;
+
+      if (hasTickets) {
+        document.getElementById('order-items').innerHTML = items.map(item => `
+          <div class="order-line item">
+            <span>${item.name} <span class="qty-tag">× ${item.qty}</span></span>
+            <span>₹${item.lineTotal.toLocaleString('en-IN')}</span>
+          </div>
+        `).join('');
+
+        document.getElementById('platform-fee').innerText = `₹${platformFee}`;
+        document.getElementById('conv-fee').innerText = `₹${convenienceFee.toFixed(2)}`;
+        document.getElementById('order-total').innerText = `₹${total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+      }
+
+      // Update button logic removed
+    }
+
+    async function initiatePayment() {
+      if (!window.currentUser) {
+        alert("Please login first to book your pass");
+        return;
+      }
+      
+      const btn = document.getElementById('btn-next-1');
+      btn.disabled = true;
+      btn.innerText = "Processing...";
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const event_id = urlParams.get('event_id') || 'all';
+      
+      const ticketNames = state.summary.items.map(i => `${i.name} x${i.qty}`).join(', ');
+      const totalTickets = state.summary.items.reduce((sum, i) => sum + i.qty, 0);
+
+      try {
+        const res = await fetch(`${window.API_BASE}/api/create-order`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+              email: window.currentUser.email, 
+              name: window.currentUser.displayName,
+              event_id: event_id,
+              ticket_type: ticketNames, 
+              ticket_count: totalTickets, 
+              amount: state.summary.total 
+          })
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error);
+        
+        const cashfree = Cashfree({ mode: data.environment === 'production' ? 'production' : 'sandbox' });
+        cashfree.checkout({ paymentSessionId: data.payment_session_id, redirectTarget: "_self" });
+      } catch (e) {
+        console.error(e);
+        alert('Payment initialization failed.');
+        btn.disabled = false;
+        btn.innerText = "Pay & Book →";
+      }
+    }
+
+    function goToStep(step) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+      // Toggle visibility
+      document.getElementById('step-1').classList.toggle('hidden-step', step !== 1);
+      document.getElementById('step-2').classList.toggle('hidden-step', step !== 2);
+      document.getElementById('step-3').classList.toggle('hidden-step', step !== 3);
+      
+      // Hide Back btn on step 3
+      const backBtn = document.getElementById('booking-back-btn');
+      if (backBtn) backBtn.style.visibility = step === 3 ? 'hidden' : 'visible';
+    }
+
+    let pollAttempt = 0;
+    const MAX_POLL_ATTEMPTS = 20;
+
+    async function checkOrderStatus(orderId) {
+      pollAttempt++;
+      
+      // Show attempt feedback
+      const descEl = document.getElementById('processing-desc');
+      if (pollAttempt > 1) {
+        descEl.innerHTML = `Confirming with payment gateway... (attempt ${pollAttempt})`;
+      }
+      
+      try {
+        const res = await fetch(`${window.API_BASE}/api/order-status?order_id=${orderId}`);
+        const data = await res.json();
+        
+        if (data.success && data.booking) {
+            if (data.booking.status === 'approved') {
+                showSuccess(data.booking);
+                return;
+            } else if (data.booking.status === 'failed') {
+                document.getElementById('processing-title').innerText = "Payment Failed";
+                document.getElementById('processing-title').style.color = "#ef4444";
+                descEl.innerHTML = "Your payment failed or was cancelled. <br><br> <a href='booking.html' style='color:#C8A84B; text-decoration:underline;'>Try Again</a>";
+                return;
+            }
+        }
+        
+        // Still pending — retry with increasing delay (1s → 1.5s → 2s, then 2s)
+        if (pollAttempt < MAX_POLL_ATTEMPTS) {
+            const delay = Math.min(1000 + (pollAttempt * 500), 2000);
+            setTimeout(() => checkOrderStatus(orderId), delay);
+        } else {
+            // Max retries exceeded — let user retry manually
+            document.getElementById('processing-title').innerText = "Verification Timed Out";
+            document.getElementById('processing-title').style.color = "#f59e0b";
+            descEl.innerHTML = `Payment may have been processed but verification is taking longer than usual.<br><br>
+              <button onclick="pollAttempt=0; document.getElementById('processing-title').innerText='Verifying Payment...'; document.getElementById('processing-title').style.color='#D4AF37'; checkOrderStatus('${orderId}')" style="background:#C8A84B; color:#0B1D14; border:none; padding:0.6rem 1.5rem; border-radius:8px; font-weight:600; cursor:pointer; margin-top:0.5rem;">Retry Verification</button>
+              <br><br><a href='events.html' style='color:#8FA89B; text-decoration:underline; font-size:0.85rem;'>Go back to events</a>`;
+        }
+      } catch (e) { 
+          console.error(e);
+          if (pollAttempt < MAX_POLL_ATTEMPTS) {
+              setTimeout(() => checkOrderStatus(orderId), 2000);
+          }
+      }
+    }
+
+    function showSuccess(booking) {
+      goToStep(3);
+      document.getElementById('confirm-order-id').innerText = `Order ID: ${booking.id}`;
+      
+      const itemRow = `
+        <tr>
+          <td>${booking.ticket_type}</td>
+          <td style="text-align: center;">${booking.ticket_count}</td>
+          <td style="text-align: center;">-</td>
+          <td style="text-align: right;">₹${booking.amount}</td>
+        </tr>
+      `;
+      
+      document.getElementById('invoice-tbody').innerHTML = itemRow + `
+        <tr class="invoice-total">
+          <td colspan="3"><strong>Total Paid</strong></td>
+          <td style="text-align: right;"><strong>₹${booking.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong></td>
+        </tr>
+      `;
+
+      document.getElementById('qr-container').innerHTML = '';
+      setTimeout(() => {
+        new QRCode(document.getElementById('qr-container'), {
+            text: JSON.stringify({ 
+                id: booking.id, 
+                email: booking.email, 
+                ticket_type: booking.ticket_type, 
+                ticket_count: booking.ticket_count 
+            }),
+            width: 126,
+            height: 126,
+            colorDark: "#0B1D14",
+            colorLight: "#FFFFFF",
+            correctLevel: QRCode.CorrectLevel.M
+        });
+      }, 100);
+    }
+
+    // Initialize
+    document.addEventListener("DOMContentLoaded", () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const orderId = urlParams.get('order_id');
+      if (orderId) {
+        goToStep(2);
+        checkOrderStatus(orderId);
+      } else {
+        renderTickets();
+      }
+    });
+
+  </script>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <script type="module" src="js/auth.js"></script>
+</body>
+</html>

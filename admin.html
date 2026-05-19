@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Admin | Swarala Thota</title>
+    <link rel="icon" type="image/png" href="assets/logo_en.png">
+    
+
+    
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    
+    <style>
+        body {
+            background-color: var(--color-forest-950);
+            color: #E8F3EC;
+            font-family: var(--font-body);
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            padding-bottom: 60px;
+        }
+
+        /* Admin top tab bar — same style as bottom nav */
+        .admin-tab-bar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: var(--color-forest-900);
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            border: 1px solid rgba(200, 168, 75, 0.2);
+            border-top: none;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .admin-tab {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+            color: #8FA89B;
+            font-size: 0.8rem;
+            font-weight: 600;
+            font-family: var(--font-body);
+            padding: 0.65rem 1.5rem;
+            cursor: pointer;
+            border: none;
+            background: none;
+            white-space: nowrap;
+            transition: background-color 0.15s, color 0.15s;
+        }
+        .admin-tab.active {
+            background-color: var(--color-gold);
+            color: var(--color-forest-950);
+        }
+        .admin-tab i { font-size: 1.1rem; }
+
+        .admin-main { padding: 1.5rem; max-width: 900px; margin: 0 auto; }
+        .admin-view { display: none; }
+        .admin-view.active { display: block; }
+
+        /* Auth overlay */
+        .auth-overlay {
+            position: fixed; inset: 0; z-index: 2000;
+            background: var(--color-forest-950);
+            display: flex; align-items: center; justify-content: center;
+            color: #8FA89B; font-size: 1rem;
+        }
+        .auth-overlay.hidden { display: none; }
+
+        /* Admin form styling */
+        .admin-input, .admin-select, .admin-textarea {
+            width: 100%; box-sizing: border-box;
+            background: rgba(10, 26, 15, 0.8);
+            border: 1px solid rgba(200, 168, 75, 0.25);
+            color: #E8F3EC;
+            border-radius: 10px;
+            padding: 0.7rem 1rem;
+            font-size: 0.9rem;
+            font-family: var(--font-body);
+            outline: none;
+        }
+        .admin-input:focus, .admin-select:focus, .admin-textarea:focus {
+            border-color: var(--color-gold);
+        }
+        .admin-textarea { resize: vertical; min-height: 100px; }
+        .admin-label {
+            display: block; margin-bottom: 0.4rem;
+            color: #8FA89B; font-size: 0.8rem; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.05em;
+        }
+        .admin-field { margin-bottom: 1rem; }
+        .admin-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        @media (max-width: 500px) { .admin-row { grid-template-columns: 1fr; } }
+
+        .admin-submit {
+            width: 100%;
+            background-color: var(--color-gold);
+            color: var(--color-forest-950);
+            border: none; border-radius: 10px;
+            padding: 0.85rem; font-weight: 700; font-size: 1rem;
+            cursor: pointer; margin-top: 0.5rem;
+        }
+
+        /* Bookings table */
+        .bookings-table { width: 100%; border-collapse: collapse; }
+        .bookings-table th {
+            text-align: left; padding: 0.6rem 0.75rem;
+            color: #8FA89B; font-size: 0.7rem; text-transform: uppercase;
+            letter-spacing: 0.05em; border-bottom: 1px solid rgba(200,168,75,0.15);
+        }
+        .bookings-table td {
+            padding: 0.6rem 0.75rem; font-size: 0.85rem;
+            border-bottom: 1px solid rgba(200,168,75,0.08);
+            color: #E8F3EC;
+        }
+
+        /* Scanner */
+        .scanner-modal {
+            position: fixed; inset: 0; z-index: 3000;
+            background: rgba(0,0,0,0.9);
+            display: none; flex-direction: column;
+            align-items: center; justify-content: center; gap: 1rem;
+        }
+        .scanner-modal.show { display: flex; }
+        #qr-reader { width: 300px; }
+        .scan-result { display: none; text-align: center; padding: 2rem; }
+        .scan-result.show { display: block; }
+    </style>
+</head>
+<body>
+
+    <!-- Auth overlay -->
+    <div class="auth-overlay" id="authOverlay"><div class="st-loader"></div></div>
+
+    <!-- Admin Tab Bar (top, centered, fit-content) -->
+    <div class="admin-tab-bar" id="adminTabBar" style="display: none;">
+        <button class="admin-tab active" id="tabEvents">
+            <i class="ph-fill ph-ticket"></i> Bookings
+        </button>
+        <button class="admin-tab" id="tabScanner">
+            <i class="ph-fill ph-qr-code"></i>
+        </button>
+        <button class="admin-tab" id="tabAddEvent">
+            <i class="ph-fill ph-plus-circle"></i> Add Event
+        </button>
+    </div>
+
+    <div class="admin-main" id="adminMain" style="display: none;">
+
+        <!-- VIEW: Events (bookings) -->
+        <div class="admin-view active" id="viewEvents">
+            <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.25rem;">
+                <select class="admin-select" id="eventSelector" style="width: 100%;">
+                    <option value="all">All Events</option>
+                </select>
+                <input type="text" class="admin-input" id="searchInput" placeholder="Search bookings..." style="width: 100%;">
+            </div>
+            <div style="overflow-x: auto;">
+                <table class="bookings-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Ticket</th>
+                            <th>Event</th>
+                            <th>Payment</th>
+                            <th style="text-align:right;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bookingsTableBody"></tbody>
+                </table>
+            </div>
+            <div id="loadMoreIndicator" style="display:none;"><div class="st-loader-wrap" style="padding:1rem 2rem;"><div class="st-loader"></div></div></div>
+            <div id="endOfList" style="text-align:center; padding:1rem; display:none;">
+                <p style="color:#8FA89B; font-size:0.75rem;">— End of list —</p>
+            </div>
+        </div>
+
+        <!-- VIEW: Scanner -->
+        <div class="admin-view" id="viewScanner">
+            <div style="text-align:center; padding: 3rem 1rem;">
+                <p style="color:#8FA89B; margin-bottom:1.5rem;">Point your camera at the attendee's QR code</p>
+                <div id="qr-reader" style="margin: 0 auto;"></div>
+                <div class="scan-result" id="scanResult">
+                    <div id="resultApproved" style="display:none;">
+                        <i class="ph-fill ph-check-circle" style="font-size: 3rem; color: #4ade80;"></i>
+                        <h3 style="color:#4ade80; margin: 0.5rem 0;" id="resultName"></h3>
+                        <p style="color:#8FA89B; font-size:0.85rem;" id="resultEmail"></p>
+                        <p style="color:#E8F3EC; font-size:0.9rem; margin-top:0.5rem;"><span id="resultTicketType"></span> × <span id="resultTicketCount"></span></p>
+                        <p style="color:#8FA89B; font-size:0.8rem; margin-top:0.5rem;" id="resultStatusText"></p>
+                    </div>
+                    <div id="resultRejected" style="display:none;">
+                        <i class="ph-fill ph-x-circle" style="font-size: 3rem; color: #f87171;"></i>
+                        <p style="color:#f87171; margin-top:0.5rem; font-weight:600;" id="rejectedMessage"></p>
+                    </div>
+                    <button id="scanAgainBtn" style="margin-top:1.5rem; background: var(--color-gold); color: var(--color-forest-950); border:none; border-radius:8px; padding: 0.6rem 2rem; font-weight:700; cursor:pointer;">Scan Again</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: Add Event -->
+        <div class="admin-view" id="viewAddEvent">
+            <h2 style="font-family: var(--font-display); color:#f0ead6; margin-bottom:1.25rem; font-size:1.5rem; font-weight:600;">New Event</h2>
+            <form id="addEventForm">
+
+                <!-- Image Upload Box -->
+                <div class="admin-field">
+                    <div id="imageUploadBox" style="
+                        width: 100%;
+                        aspect-ratio: 16/9;
+                        border-radius: 14px;
+                        border: 2px dashed rgba(200,168,75,0.25);
+                        background: rgba(10,26,15,0.6);
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        justify-content: center;
+                        cursor: pointer;
+                        position: relative;
+                        overflow: hidden;
+                        transition: border-color 0.2s;
+                    ">
+                        <!-- Placeholder content (shown when no image) -->
+                        <div id="imageUploadPlaceholder" style="display:flex; flex-direction:column; align-items:center; gap:0.5rem; pointer-events:none;">
+                            <i class="ph ph-image" style="font-size: 2.5rem; color: rgba(200,168,75,0.35);"></i>
+                            <span style="font-size: 0.8rem; color: #7a8a72; font-weight:500;">Tap to add cover image</span>
+                        </div>
+                        <!-- Preview image (shown when image selected) -->
+                        <img id="imagePreview" style="
+                            position: absolute; inset: 0;
+                            width: 100%; height: 100%;
+                            object-fit: cover;
+                            display: none;
+                            border-radius: 12px;
+                        ">
+                        <!-- Remove button (shown on top of image) -->
+                        <button type="button" id="removeImageBtn" style="
+                            display: none;
+                            position: absolute;
+                            bottom: 0.6rem;
+                            left: 50%;
+                            transform: translateX(-50%);
+                            background: rgba(0,0,0,0.7);
+                            backdrop-filter: blur(8px);
+                            -webkit-backdrop-filter: blur(8px);
+                            color: #f87171;
+                            border: 1px solid rgba(248,113,113,0.3);
+                            border-radius: 8px;
+                            padding: 0.35rem 1rem;
+                            font-size: 0.72rem;
+                            font-weight: 600;
+                            font-family: var(--font-body);
+                            cursor: pointer;
+                            z-index: 2;
+                        ">Remove Image</button>
+                    </div>
+                    <input type="file" id="eventImage" accept="image/*" style="display:none;">
+                </div>
+
+                <!-- Title -->
+                <div class="admin-field">
+                    <label class="admin-label">Event Title</label>
+                    <input type="text" class="admin-input" id="eventTitle" maxlength="20" required placeholder="Max 20 characters">
+                    <div style="text-align:right; margin-top:0.2rem;">
+                        <span id="titleCount" style="font-size:0.65rem; color:#7a8a72;">0 / 20</span>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="admin-field">
+                    <label class="admin-label">Description</label>
+                    <textarea class="admin-textarea" id="eventDesc" maxlength="100" required placeholder="Max 100 characters" style="min-height: 70px;"></textarea>
+                    <div style="text-align:right; margin-top:0.2rem;">
+                        <span id="descCount" style="font-size:0.65rem; color:#7a8a72;">0 / 100</span>
+                    </div>
+                </div>
+
+                <!-- Singer / Band -->
+                <div class="admin-field">
+                    <label class="admin-label">Singer / Band</label>
+                    <input type="text" class="admin-input" id="eventSinger" placeholder="Optional">
+                </div>
+
+                <!-- Date + Time in one row -->
+                <div class="admin-row">
+                    <div class="admin-field">
+                        <label class="admin-label">Date</label>
+                        <input type="date" class="admin-input" id="eventDate" required style="
+                            -webkit-appearance: none;
+                            appearance: none;
+                            color-scheme: dark;
+                        ">
+                    </div>
+                    <div class="admin-field">
+                        <label class="admin-label">Time</label>
+                        <input type="time" class="admin-input" id="eventTime" required style="
+                            -webkit-appearance: none;
+                            appearance: none;
+                            color-scheme: dark;
+                        ">
+                    </div>
+                </div>
+
+                <!-- Location -->
+                <div class="admin-field">
+                    <label class="admin-label">Location</label>
+                    <input type="text" class="admin-input" id="eventLocation" required placeholder="Venue name or address">
+                </div>
+
+                <button type="submit" class="admin-submit" id="submitEventBtn">
+                    <i class="ph-fill ph-plus-circle"></i> Publish Event
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="app-bottom-nav" id="bottomNav">
+      <a href="events.html" class="app-nav-item">
+        <i class="ph-fill ph-house app-nav-icon"></i>
+        <span>Events</span>
+      </a>
+      <a href="mytickets.html" class="app-nav-item">
+        <i class="ph-fill ph-ticket app-nav-icon"></i>
+        <span>My Tickets</span>
+      </a>
+      <a href="admin.html" class="app-nav-item active" id="adminNavBtn">
+        <i class="ph-fill ph-shield-star app-nav-icon"></i>
+        <span>Admin</span>
+      </a>
+      <a href="profile.html" class="app-nav-item" id="profileNavBtn">
+        <img id="navUserImg" src="assets/logo_en.png" alt="Profile" class="app-nav-avatar">
+        <span>Profile</span>
+      </a>
+    </nav>
+
+    <script type="module" src="js/admin.js"></script>
+</body>
+</html>

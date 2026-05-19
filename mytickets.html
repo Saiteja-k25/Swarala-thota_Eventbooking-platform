@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="assets/logo_en.png">
+  <link rel="apple-touch-icon" href="assets/logo_en.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>My Tickets — Swarala Thota</title>
+
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <style>
+    body {
+      background-color: var(--color-forest-950);
+      color: #E8F3EC;
+      font-family: var(--font-body);
+      min-height: 100vh;
+      margin: 0; padding: 0;
+      padding-bottom: 80px;
+    }
+    .mytickets-header {
+      text-align: center;
+      padding: 1.75rem 1.25rem 0.75rem;
+    }
+    .mytickets-header h1 {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      color: #f0ead6;
+      font-weight: 600;
+      margin: 0;
+    }
+    .mytickets-container {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 0 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    /* ═══ TICKET CARD ═══ */
+    .tkt {
+      display: flex;
+      border-radius: 14px;
+      overflow: visible;
+      position: relative;
+      height: 140px;
+      filter: drop-shadow(0 4px 12px rgba(0,0,0,0.35));
+    }
+
+    .tkt-stub {
+      width: 105px;
+      min-width: 105px;
+      background: #161f18;
+      border-radius: 14px 0 0 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0.6rem 0.5rem;
+      gap: 0.3rem;
+    }
+
+    .tkt-qr {
+      background: #fff;
+      border-radius: 6px;
+      padding: 4px;
+      line-height: 0;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+    .tkt-qr:active { transform: scale(0.93); }
+    .tkt-qr img { display: none !important; }
+    .tkt-qr canvas {
+      display: block !important;
+      width: 68px !important;
+      height: 68px !important;
+    }
+
+    .tkt-stub-type {
+      font-size: 0.48rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #7a8a72;
+      text-align: center;
+      line-height: 1.25;
+      max-width: 90px;
+      word-break: break-word;
+    }
+
+    .tkt-perf {
+      width: 0;
+      position: relative;
+      z-index: 2;
+    }
+    .tkt-perf::before {
+      content: '';
+      position: absolute;
+      top: 10px; bottom: 10px;
+      left: -1px; width: 2px;
+      background: repeating-linear-gradient(to bottom, transparent 0px, transparent 4px, rgba(200,168,75,0.12) 4px, rgba(200,168,75,0.12) 8px);
+    }
+    .tkt-perf::after {
+      content: '';
+      position: absolute;
+      left: -8px; top: -8px;
+      width: 16px; height: 16px;
+      background: var(--color-forest-950);
+      border-radius: 50%;
+      box-shadow: 0 132px 0 0 var(--color-forest-950);
+      z-index: 5;
+    }
+
+    .tkt-body {
+      flex: 1;
+      border-radius: 0 14px 14px 0;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      background: #0f1811;
+    }
+
+    .tkt-body-img {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+    }
+    .tkt-body-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .tkt-body-img::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(6,15,8,0.55) 0%, rgba(6,15,8,0.35) 40%, rgba(6,15,8,0.6) 100%);
+    }
+
+    .tkt-body-noimg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      background: linear-gradient(135deg, #0f1811 0%, #161f18 100%);
+    }
+
+    .tkt-content {
+      position: relative;
+      z-index: 1;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 0.75rem 0.85rem 0.65rem 1rem;
+    }
+
+    .tkt-name {
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.2;
+      text-shadow: 0 1px 6px rgba(0,0,0,0.5);
+      background: rgba(6,15,8,0.35);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      padding: 0.3rem 0.5rem;
+      border-radius: 6px;
+      width: fit-content;
+      max-width: 100%;
+    }
+
+    .tkt-bottom {
+      display: flex;
+      align-items: flex-end;
+      justify-content: flex-start;
+    }
+
+    .tkt-datetime {
+      font-size: 0.7rem;
+      color: #e2e8d5;
+      line-height: 1;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+      background: rgba(6,15,8,0.35);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      padding: 0.25rem 0.45rem;
+      border-radius: 5px;
+    }
+    .tkt-datetime span {
+      color: var(--color-gold);
+      font-weight: 600;
+    }
+
+    /* Load More */
+    .load-more-btn {
+      display: block;
+      width: 100%;
+      padding: 0.75rem;
+      background: rgba(200,168,75,0.08);
+      border: 1px solid rgba(200,168,75,0.15);
+      color: var(--color-gold);
+      font-family: var(--font-body);
+      font-size: 0.8rem;
+      font-weight: 600;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .load-more-btn:hover { background: rgba(200,168,75,0.15); }
+    .load-more-btn:disabled { opacity: 0.5; cursor: default; }
+
+    /* ═══ QR FULLSCREEN ═══ */
+    .qr-fs {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(0,0,0,0.92);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.25rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .qr-fs.active { opacity: 1; pointer-events: auto; }
+
+    .qr-fs-close {
+      position: absolute;
+      top: 1.25rem; right: 1.25rem;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #fff;
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      font-size: 1rem;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+    }
+
+    .qr-fs-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 1.25rem;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+    }
+    .qr-fs-card img { display: none !important; }
+    .qr-fs-card canvas {
+      display: block !important;
+      width: 220px !important;
+      height: 220px !important;
+    }
+
+    .qr-fs-label {
+      color: #b8c5a8;
+      font-size: 0.8rem;
+      text-align: center;
+      line-height: 1.5;
+    }
+    .qr-fs-label strong {
+      color: var(--color-gold);
+      display: block;
+      font-size: 0.95rem;
+      margin-bottom: 0.15rem;
+    }
+
+    .no-tickets {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: #8FA89B;
+      font-size: 0.95rem;
+    }
+    .no-tickets i {
+      font-size: 2.5rem;
+      color: rgba(200,168,75,0.25);
+      display: block;
+      margin-bottom: 0.75rem;
+    }
+    .loading-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: #8FA89B;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 400px) {
+      .tkt { height: 130px; }
+      .tkt-stub { width: 92px; min-width: 92px; }
+      .tkt-qr canvas { width: 58px !important; height: 58px !important; }
+      .tkt-name { font-size: 0.92rem; }
+      .tkt-perf::after { box-shadow: 0 114px 0 0 var(--color-forest-950); }
+    }
+  </style>
+</head>
+<body class="app-body">
+
+  <div class="mytickets-header">
+    <h1>My Tickets</h1>
+  </div>
+
+  <div class="mytickets-container" id="ticketsContainer">
+    <div class="st-loader-wrap"><div class="st-loader"></div></div>
+  </div>
+
+  <div class="qr-fs" id="qrOverlay">
+    <button class="qr-fs-close" id="qrClose">✕</button>
+    <div class="qr-fs-card" id="qrFsCard"></div>
+    <div class="qr-fs-label" id="qrFsLabel"></div>
+  </div>
+
+  <nav class="app-bottom-nav" id="bottomNav">
+    <a href="events.html" class="app-nav-item">
+      <i class="ph-fill ph-house app-nav-icon"></i>
+      <span>Events</span>
+    </a>
+    <a href="mytickets.html" class="app-nav-item active">
+      <i class="ph-fill ph-ticket app-nav-icon"></i>
+      <span>My Tickets</span>
+    </a>
+    <a href="admin.html" class="app-nav-item" id="adminNavBtn">
+      <i class="ph-fill ph-shield-star app-nav-icon"></i>
+      <span>Admin</span>
+    </a>
+    <a href="profile.html" class="app-nav-item" id="profileNavBtn">
+      <img id="navUserImg" src="assets/logo_en.png" alt="Profile" class="app-nav-avatar">
+      <span>Profile</span>
+    </a>
+  </nav>
+
+  <script>
+    (function(){
+      if (sessionStorage.getItem('st_isAdmin') !== 'true') {
+        var a = document.getElementById('adminNavBtn');
+        if (a) a.style.display = 'none';
+      }
+    })();
+  </script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const container = document.getElementById('ticketsContainer');
+      const API_BASE = window.API_BASE || 'https://swaralathota-backend.ourancientheroes.workers.dev';
+      const overlay = document.getElementById('qrOverlay');
+      const qrFsCard = document.getElementById('qrFsCard');
+      const qrFsLabel = document.getElementById('qrFsLabel');
+
+      const PAGE_SIZE = 10;
+      let currentOffset = 0;
+      let hasMore = false;
+      let isLoading = false;
+      let ticketIndex = 0;
+
+      document.getElementById('qrClose').addEventListener('click', () => overlay.classList.remove('active'));
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('active'); });
+
+      function openQr(qrData, eventName) {
+        qrFsCard.innerHTML = '';
+        qrFsLabel.innerHTML = `<strong>${eventName}</strong>Show this QR at the venue entrance`;
+        new QRCode(qrFsCard, {
+          text: qrData, width: 220, height: 220,
+          colorDark: "#0B1D14", colorLight: "#FFFFFF",
+          correctLevel: QRCode.CorrectLevel.M
+        });
+        overlay.classList.add('active');
+      }
+
+      let check = setInterval(async () => {
+        if (typeof window.currentUser !== 'undefined') {
+          clearInterval(check);
+          if (!window.currentUser) { window.location.href = 'index.html'; return; }
+          await loadTickets(true);
+        }
+      }, 200);
+      setTimeout(() => clearInterval(check), 8000);
+
+      async function loadTickets(reset) {
+        if (isLoading) return;
+        isLoading = true;
+
+        if (reset) {
+          currentOffset = 0;
+          ticketIndex = 0;
+          container.innerHTML = '';
+        }
+
+        // Remove old load-more button
+        const oldBtn = document.getElementById('loadMoreBtn');
+        if (oldBtn) oldBtn.remove();
+
+        try {
+          const res = await fetch(`${API_BASE}/api/bookings/user?email=${encodeURIComponent(window.currentUser.email)}&limit=${PAGE_SIZE}&offset=${currentOffset}`);
+          const data = await res.json();
+
+          if (!data.success || !data.bookings || data.bookings.length === 0) {
+            if (currentOffset === 0) {
+              container.innerHTML = '<div class="no-tickets"><i class="ph ph-ticket"></i>No tickets yet</div>';
+            }
+            isLoading = false;
+            return;
+          }
+
+          hasMore = data.hasMore;
+          currentOffset += data.bookings.length;
+
+          // Preload all images with Promise.all
+          const imagePromises = data.bookings.map(b => {
+            const imgUrl = b.event_image || b.image_url || '';
+            if (!imgUrl) return Promise.resolve(null);
+            return new Promise(resolve => {
+              const img = new Image();
+              img.onload = () => resolve(imgUrl);
+              img.onerror = () => resolve(null);
+              img.src = imgUrl;
+            });
+          });
+
+          const loadedImages = await Promise.all(imagePromises);
+
+          data.bookings.forEach((b, batchIdx) => {
+            const i = ticketIndex++;
+            const qrData = JSON.stringify({
+              id: b.id, email: b.email,
+              ticket_type: b.ticket_type,
+              ticket_count: b.ticket_count
+            });
+
+            const name = b.event_name || 'Event';
+            const dt = b.event_date || '';
+            const tm = b.event_time || '';
+            const type = b.ticket_type || 'General';
+            const img = loadedImages[batchIdx];
+
+            const el = document.createElement('div');
+            el.className = 'tkt';
+            el.innerHTML = `
+              <div class="tkt-stub">
+                <div class="tkt-qr" id="qr-${i}" title="Tap to enlarge"></div>
+                <div class="tkt-stub-type">${type}</div>
+              </div>
+              <div class="tkt-perf"></div>
+              <div class="tkt-body">
+                ${img
+                  ? `<div class="tkt-body-img"><img src="${img}" alt="${name}"></div>`
+                  : `<div class="tkt-body-noimg"></div>`
+                }
+                <div class="tkt-content">
+                  <div class="tkt-name">${name}</div>
+                  <div class="tkt-bottom">
+                    <div class="tkt-datetime">
+                      ${dt ? `<span>${dt}</span>` : ''}${tm ? ` · ${tm}` : ''}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
+
+            container.appendChild(el);
+
+            const qrEl = document.getElementById(`qr-${i}`);
+            new QRCode(qrEl, {
+              text: qrData, width: 68, height: 68,
+              colorDark: "#0B1D14", colorLight: "#FFFFFF",
+              correctLevel: QRCode.CorrectLevel.M
+            });
+            qrEl.addEventListener('click', () => openQr(qrData, name));
+          });
+
+          // Add "Load More" button if there are more
+          if (hasMore) {
+            const btn = document.createElement('button');
+            btn.className = 'load-more-btn';
+            btn.id = 'loadMoreBtn';
+            btn.textContent = 'Load more tickets';
+            btn.addEventListener('click', () => loadTickets(false));
+            container.appendChild(btn);
+          }
+
+        } catch (err) {
+          console.error('Failed to load tickets:', err);
+          if (currentOffset === 0) {
+            container.innerHTML = '<div class="no-tickets"><i class="ph ph-warning-circle"></i>Failed to load tickets.</div>';
+          }
+        } finally {
+          isLoading = false;
+        }
+      }
+    });
+  </script>
+
+  <script type="module" src="js/auth.js"></script>
+</body>
+</html>

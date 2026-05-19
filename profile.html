@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="assets/logo_en.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Profile — Swarala Thota</title>
+
+
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <link rel="stylesheet" href="css/style.css">
+
+  <style>
+    .profile-info {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2.5rem 1.5rem 2rem;
+      border-bottom: 1px solid rgba(200, 168, 75, 0.12);
+      margin-bottom: 1.5rem;
+    }
+    .profile-avatar-lg {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      border: 3px solid var(--color-gold);
+      object-fit: cover;
+      margin-bottom: 0.75rem;
+    }
+    .profile-name-lg {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      color: #f0ead6;
+      font-weight: bold;
+    }
+    .profile-email-lg {
+      color: #8FA89B;
+      font-size: 0.85rem;
+    }
+    .profile-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 0 1.25rem;
+    }
+    .profile-menu-item {
+      background: rgba(10, 26, 15, 0.6);
+      border: 1px solid rgba(200, 168, 75, 0.1);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #E8F3EC;
+      text-decoration: none;
+      cursor: pointer;
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+    }
+    .profile-menu-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .profile-menu-left i { color: var(--color-gold); font-size: 1.25rem; }
+    .profile-menu-item.logout { border-color: rgba(248, 113, 113, 0.15); margin-top: 1.5rem; }
+    .profile-menu-item.logout .profile-menu-left i { color: #f87171; }
+    .profile-menu-item.logout span { color: #f87171; }
+  </style>
+</head>
+<body class="app-body">
+
+  <!-- Profile info -->
+  <div class="profile-info">
+    <img id="mainProfileImg" src="assets/logo_en.png" alt="Profile" class="profile-avatar-lg">
+    <h1 id="mainProfileName" class="profile-name-lg">Loading...</h1>
+    <p id="mainProfileEmail" class="profile-email-lg"></p>
+  </div>
+
+  <!-- Menu -->
+  <div class="profile-menu">
+    <a href="terms.html" class="profile-menu-item">
+      <div class="profile-menu-left">
+        <i class="ph ph-file-text"></i>
+        <span>Terms of Use</span>
+      </div>
+      <i class="ph ph-caret-right" style="color: #8FA89B;"></i>
+    </a>
+    
+    <a href="privacy.html" class="profile-menu-item">
+      <div class="profile-menu-left">
+        <i class="ph ph-shield-check"></i>
+        <span>Privacy Policy</span>
+      </div>
+      <i class="ph ph-caret-right" style="color: #8FA89B;"></i>
+    </a>
+
+    <button class="profile-menu-item logout" onclick="window.logoutUser()">
+      <div class="profile-menu-left">
+        <i class="ph ph-sign-out"></i>
+        <span>Log Out</span>
+      </div>
+    </button>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="app-bottom-nav" id="bottomNav">
+    <a href="events.html" class="app-nav-item">
+      <i class="ph-fill ph-house app-nav-icon"></i>
+      <span>Events</span>
+    </a>
+    <a href="mytickets.html" class="app-nav-item">
+      <i class="ph-fill ph-ticket app-nav-icon"></i>
+      <span>My Tickets</span>
+    </a>
+    <a href="admin.html" class="app-nav-item" id="adminNavBtn">
+      <i class="ph-fill ph-shield-star app-nav-icon"></i>
+      <span>Admin</span>
+    </a>
+    <a href="profile.html" class="app-nav-item active" id="profileNavBtn">
+      <img id="navUserImg" src="assets/logo_en.png" alt="Profile" class="app-nav-avatar">
+      <span>Profile</span>
+    </a>
+  </nav>
+  <script>
+    (function(){
+      var isAdmin = sessionStorage.getItem('st_isAdmin');
+      if (isAdmin !== 'true') {
+        var a = document.getElementById('adminNavBtn');
+        if (a) a.style.display = 'none';
+      }
+    })();
+  </script>
+
+  <script type="module" src="js/auth.js"></script>
+  <script src="js/profile.js"></script>
+</body>
+</html>

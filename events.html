@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="assets/logo_en.png">
+  <link rel="apple-touch-icon" href="assets/logo_en.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Events — Swarala Thota</title>
+
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="app-body">
+
+  <div id="eventsGrid" class="events-grid-v2">
+     <div style="grid-column: 1 / -1;"><div class="st-loader-wrap"><div class="st-loader"></div></div></div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="app-bottom-nav" id="bottomNav">
+    <a href="events.html" class="app-nav-item active">
+      <i class="ph-fill ph-house app-nav-icon"></i>
+      <span>Events</span>
+    </a>
+    <a href="mytickets.html" class="app-nav-item">
+      <i class="ph-fill ph-ticket app-nav-icon"></i>
+      <span>My Tickets</span>
+    </a>
+    <a href="admin.html" class="app-nav-item" id="adminNavBtn">
+      <i class="ph-fill ph-shield-star app-nav-icon"></i>
+      <span>Admin</span>
+    </a>
+    <a href="profile.html" class="app-nav-item" id="profileNavBtn">
+      <img id="navUserImg" src="assets/logo_en.png" alt="Profile" class="app-nav-avatar">
+      <span>Profile</span>
+    </a>
+  </nav>
+  <script>
+    // Instantly hide admin tab if not admin (no flash)
+    (function(){
+      var isAdmin = sessionStorage.getItem('st_isAdmin');
+      if (isAdmin !== 'true') {
+        var a = document.getElementById('adminNavBtn');
+        if (a) a.style.display = 'none';
+      }
+    })();
+  </script>
+
+  <script type="module" src="js/auth.js"></script>
+  <script src="js/events.js"></script>
+</body>
+</html>
