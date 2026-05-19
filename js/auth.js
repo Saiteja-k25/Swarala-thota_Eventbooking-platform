@@ -2,7 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebas
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCjnFyUvN49loc-odcD6PiPzF90-s4Hc0A",
+  apiKey: "", // fetched from /api/firebase-config at runtime
   authDomain: "swaralathota.firebaseapp.com",
   projectId: "swaralathota",
   storageBucket: "swaralathota.firebasestorage.app",
