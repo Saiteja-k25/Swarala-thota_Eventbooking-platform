@@ -1,105 +1,151 @@
-# Svarala Thota – Event Booking Platform
+# Swarala Thota — Event Booking Platform
 
-Svarala Thota is a modern event ticket booking web application designed to deliver a seamless and premium user experience. The platform enables users to explore event details, select tickets, and proceed through a smooth and intuitive booking flow.
+A premium, production-grade event ticket booking web application built for **Swarala Thota**, Hyderabad. The platform covers the complete attendee journey — from event discovery and ticket selection to payment and confirmation — wrapped in a visually rich, mobile-first interface.
+
+**Live Site:** [swaralathota.com](https://swaralathota.com) · [swaralathotawebsite.pages.dev](https://swaralathotawebsite.pages.dev)
+
+---
 
 ## Overview
 
-This project focuses on creating a visually rich, mobile-first interface with smooth animations and interactive components. It is built to reflect a premium “musical garden” theme, aligning with the branding of Svarala Thota.
+Swarala Thota is a multi-page vanilla web application designed around the "musical garden" theme of the event brand. The frontend communicates with a serverless Cloudflare Workers backend via a clean REST API layer, handling authentication, payments, and ticket management without any frontend framework overhead.
 
-## Features
-
-- Interactive event landing page with elegant UI
-- Real-time ticket selection with dynamic pricing
-- Smooth animations using Framer Motion and GSAP
-- Seamless scrolling experience using Lenis
-- Responsive design optimized for mobile users
-- Clean and minimal navigation with adaptive layout
-- Structured footer with query/contact section
-- Ready for integration with payment gateways and backend services
+---
 
 ## Tech Stack
 
-Frontend:
-- React (Vite)
-- Tailwind CSS
+| Layer | Technology |
+|---|---|
+| Markup | HTML5 |
+| Styling | CSS3 (custom, no framework) |
+| Scripting | Vanilla JavaScript (ES6+) |
+| Animation | GSAP 3.12 + ScrollTrigger |
+| Smooth Scroll | Lenis 1.0.42 |
+| Authentication | Firebase (Google OAuth) |
+| Payments | Cashfree JS SDK |
+| Backend | Cloudflare Workers (serverless) |
+| Database | Cloudflare D1 (SQLite) |
+| Object Storage | Cloudflare R2 |
+| Deployment | Cloudflare Pages (frontend) + Cloudflare Workers (backend) |
 
-Animations and UI Enhancements:
-- Framer Motion
-- GSAP
-- Lenis (smooth scrolling)
-
-Deployment:
-- Vercel
+---
 
 ## Project Structure
 
-src/
- ├── components/
- │    ├── Navbar.jsx
- │    ├── Hero.jsx
- │    ├── Tickets.jsx
- │    ├── Footer.jsx
- │    ├── CustomCursor.jsx
- │
- ├── pages/
- │    └── Home.jsx
- │
- ├── App.jsx
- ├── main.jsx
+```
+swarala-thota/
+├── assets/
+│   └── logo_en.png
+├── css/
+│   └── style.css
+├── js/
+│   ├── auth.js          ← Firebase auth + middleware orchestration
+│   ├── main.js          ← GSAP animations + Lenis scroll
+│   ├── admin.js         ← Admin panel logic
+│   ├── booking.js       ← Cashfree payment session flow
+│   ├── event.js         ← Single event detail view
+│   ├── events.js        ← Event listing + dynamic rendering
+│   ├── mytickets.js     ← User ticket dashboard
+│   └── profile.js       ← User profile view
+├── index.html           ← Landing page
+├── events.html          ← Event listing
+├── event.html           ← Single event detail
+├── booking.html         ← Ticket checkout
+├── mytickets.html       ← User ticket dashboard
+├── admin.html           ← Admin panel
+├── profile.html         ← User profile
+├── privacy.html         ← Privacy policy
+├── terms.html           ← Terms of use
+└── vercel.json          ← Deployment config
+```
 
-## Getting Started
+---
 
-### Prerequisites
+## Features
 
-- Node.js (v16 or higher)
-- npm or yarn
+**User-Facing**
+- Interactive landing page with GSAP-driven hero animations and CSS particle effects
+- Event listing page with dynamic card rendering from backend API
+- Ticket booking flow with Cashfree JS SDK inline checkout
+- Google Sign-In via Firebase Authentication
+- My Tickets dashboard with QR code generation per booking
+- Responsive, mobile-first design across all pages
 
-### Installation
+**Admin**
+- Secure admin panel with role-based access (checked server-side)
+- View and filter all bookings with pagination
+- Create new events with image upload to Cloudflare R2
+- QR scanner for validating attendee tickets at the event entrance
 
-Clone the repository:
+**Performance**
+- DOMContentLoaded: ~543ms on cold start
+- Total page load: ~590ms
+- ~85% cache hit rate on repeat visits
+- No frontend framework — minimal bundle, fast on mobile networks
 
-git clone https://github.com/Saiteja-k25/Swarala-thota_Eventbooking-platform.git
+---
 
-Navigate to the project folder:
+## Pages
 
-cd Swarala-thota_Eventbooking-platform
+| Page | Description |
+|---|---|
+| `index.html` | Landing page — hero, about, vibe marquee, footer |
+| `events.html` | Lists all events fetched from `/api/events` |
+| `event.html` | Single event detail view |
+| `booking.html` | Ticket selection + Cashfree checkout |
+| `mytickets.html` | Auth-protected user ticket dashboard |
+| `admin.html` | Admin booking management + QR verification |
+| `profile.html` | User profile page |
+| `privacy.html` | Privacy policy |
+| `terms.html` | Terms of use |
 
-Install dependencies:
+---
 
-npm install
+## Backend & API
 
-Run the development server:
+The backend runs entirely on **Cloudflare Workers** with **Cloudflare D1** as the database and **Cloudflare R2** for image storage. The frontend communicates with it via the following endpoints:
 
-npm run dev
+| Endpoint | Method | Purpose |
+|---|---|---|
+| `/api/firebase-config` | GET | Fetch Firebase keys at runtime |
+| `/api/users` | POST | Register user; get admin flag |
+| `/api/events` | GET | List all events |
+| `/api/event?id={id}` | GET | Single event details |
+| `/cdn/:key` | GET | Serve event banner from R2 |
+| `/api/create-order` | POST | Initiate Cashfree payment session |
+| `/api/order-status` | GET | Poll payment confirmation |
+| `/api/bookings/user` | GET | Fetch user's approved tickets |
+| `/api/upload` | POST | Upload event banner to R2 |
+| `/api/admin/bookings` | GET | Admin — view all bookings |
+| `/api/verify-qr` | POST | Validate QR at event entrance |
 
-## Build for Production
+**Security highlights:**
+- Firebase keys never hardcoded — fetched at runtime from the backend
+- Cashfree webhook verification using HMAC SHA-256 signature
+- Admin routes protected server-side via admins table check
+- CORS configured globally on the Worker
 
-npm run build
+---
 
-## Preview Production Build
+## Design System
 
-npm run preview
+| Token | Value |
+|---|---|
+| Background | `#0D2016` (deep forest green) |
+| Primary Accent | `#C8A84B` (gold) |
+| Localisation | English + Telugu script (సారల తోట) |
 
-## Deployment
+---
 
-The project is deployed using Vercel.
+## Developer
 
-Build Command:
-npm run build
+**Kurapati Sai Teja**
+Frontend Development · Middleware Integration · Backend Architecture
 
-Output Directory:
-dist
+- GitHub: [github.com/Saiteja-k25](https://github.com/Saiteja-k25)
+- LinkedIn: [linkedin.com/in/kurapati-saiteja-06343724b](https://www.linkedin.com/in/kurapati-saiteja-06343724b/)
+- Email: kurapatisaitejas@gmail.com
 
-## Future Enhancements
+---
 
-- Backend integration with Node.js and MongoDB
-- Payment gateway integration (Cashfree / Razorpay)
-- Automated email confirmations with QR-based tickets
-- Admin dashboard for managing bookings and events
-- Multi-event support with dynamic routing
-
-## Author
-
-Kurapati Saiteja  
-GitHub: https://github.com/Saiteja-k25  
-LinkedIn: https://www.linkedin.com/in/kurapati-saiteja-06343724b/
+*Swarala Thota · Hyderabad · 2026*
