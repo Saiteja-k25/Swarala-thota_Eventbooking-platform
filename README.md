@@ -3,7 +3,7 @@
 A premium, production-grade event ticket booking web application built for **Swarala Thota**, Hyderabad. The platform covers the complete attendee journey — from event discovery and ticket selection to payment and confirmation — wrapped in a visually rich, mobile-first interface.
 
 **Live Site:** [swaralathota.com](https://swaralathota.com) · [swaralathotawebsite.pages.dev](https://swaralathotawebsite.pages.dev)
-
+https://swaralathota.pages.dev/
 ---
 
 ## Overview
